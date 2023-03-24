@@ -2,10 +2,8 @@ use tg_flows::{listen_to_update, Telegram, UpdateKind};
 use openai_flows::{chat_completion, ChatOptions, ChatModel};
 use tg_flows::{listen_to_update, Telegram, UpdateKind};
 use std::env;
-use stdweb::unstable::fs
 use tg_botapi::{Api, GetChatMember, ChatId};
 
-/*
 #[no_mangle]
 pub fn run() {
     let openai_key_name: String = match env::var("openai_key_name") {
@@ -62,7 +60,8 @@ pub fn run() {
         }
     });
 }
-*/
+
+/*
 #[no_mangle]
 pub fn run() {
     let telegram_token = std::env::var("telegram_token").unwrap();
@@ -108,3 +107,4 @@ pub fn run() {
         Ok(())
     });
 }
+*/
