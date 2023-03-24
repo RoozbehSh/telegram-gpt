@@ -1,5 +1,5 @@
 [package]
-name = "telegram-gpt"
+name = "my_project"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,14 +9,38 @@ crate-type = ["cdylib"]
 
 [dependencies]
 openai-flows = "0.2"
-tg-flows = "0.1"
+tg-flows = "0.5"
 store-flows = "0.2"
 serde_json = "1.0"
 dotenv = "0.15.0"
 flowsnet-platform-sdk = "0.1"
+tg-botapi = "0.11.0"
+tokio = { version = "1.26", default-features = false, features = ["rt"] }
 
-[dependencies.tg_botapi]
-version = "0.11.0"
-default-features = false
+[features]
+default = []
+rt = ["tokio/rt"]
 
+/*
+//[package]
+//name = "telegram-gpt"
+//version = "0.1.0"
+//edition = "2021"
+
+//[lib]
+//path = "src/lib.rs"
+//crate-type = ["cdylib"]
+
+//[dependencies]
+//openai-flows = "0.2"
+//tg-flows = "0.1"
+//store-flows = "0.2"
+//serde_json = "1.0"
+//dotenv = "0.15.0"
+//flowsnet-platform-sdk = "0.1"
+
+//[dependencies.tg_botapi]
+//version = "0.11.0"
+//default-features = false
+*/
 
