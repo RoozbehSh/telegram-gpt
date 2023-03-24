@@ -1,8 +1,9 @@
 use tg_flows::{listen_to_update, Telegram, UpdateKind};
 use openai_flows::{chat_completion, ChatOptions, ChatModel};
 use tg_flows::{listen_to_update, Telegram, UpdateKind};
-use tg_botapi::{Api, GetChatMember, ChatId};
 use std::env;
+use tg_botapi::{Api, GetChatMember, ChatId};
+
 
 #[no_mangle]
 pub fn run() {
