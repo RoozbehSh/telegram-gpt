@@ -22,8 +22,6 @@ pub fn run() {
                 model: ChatModel::Davinci,
                 restart: text.eq_ignore_ascii_case("restart"),
                 restarted_sentence: Some(&prompt),
-                max_tokens: Some(100),
-                ..Default::default()
             };
             let c = chat_completion(&openai_key_name, &chat_id.to_string(), &text, &co);
             if let Some(c) = c {
