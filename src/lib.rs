@@ -19,11 +19,12 @@ pub fn run() {
 
             let prompt = "You are a helpful assistant answering questions on Telegram.\n\n If someone greets you without asking a question, you can simply respond \"Hello, I am your assistant on Telegram, built by the Second State team. I am ready for your question now!\" \n\n".to_owned() + &text + "\n```";
             let co = ChatOptions {
-                model: ChatModel::GPT4,
+                model: ChatModel::GPT3,
                 restart: text.eq_ignore_ascii_case("restart"),
-                restarted_sentence: Some(&prompt)
+                restarted_sentence: Some(&prompt),
+                max_tokens: Some(100),
+                ..Default::default()
             };
-
             let c = chat_completion(&openai_key_name, &chat_id.to_string(), &text, &co);
             if let Some(c) = c {
                 if c.restarted {
