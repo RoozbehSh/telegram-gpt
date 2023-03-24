@@ -1,3 +1,5 @@
+#![feature(async_closure)]
+
 use std::env;
 use tg_botapi::{Api, GetChatMember, ChatId};
 use tg_flows::{listen_to_update, Telegram, UpdateKind};
@@ -25,7 +27,7 @@ pub fn run() {
             let user_id = msg.from.id;
             
             let request = GetChatMember::new(chat_id, user_id);
-            api.send(&request, move |res| {
+            api.send(&request, async move |res| {
                 match res {
                     Ok(chat_member) => {
                         // The user is a member of the channel.
@@ -40,9 +42,9 @@ pub fn run() {
                         let c = chat_completion(&openai_key_name, &chat_id.to_string(), &text, &co);
                         if let Some(c) = c {
                             if c.restarted {
-                                _ = tele.send_message(chat_id, "I am starting a new conversation since it has been over 10 minutes from your last reply. You can also tell me to restart by typing \"restart\" into the chat.\n\n".to_string() + &c.choice);
+                                let _ = tele.send_message(chat_id, "I am starting a new conversation since it has been over 10 minutes from your last reply. You can also tell me to restart by typing \"restart\" into the chat.\n\n".to_string() + &c.choice);
                             } else {
-                                _ = tele.send_message(chat_id, c.choice);
+                                let _ = tele.send_message(chat_id, c.choice);
                             }
                         }
                     },
@@ -50,7 +52,7 @@ pub fn run() {
                         // The user is not a member of the channel.
                         // You can ask them to join the channel here.
                         // You can also check the specific error returned by the API to handle cases where the user is banned, etc.
-                        _ = tele.send_message(chat_id, "Please join our channel @ruzuntu to ask questions!".to_string() + &text);
+                        let _ = tele.send_message(chat_id, "Please join our channel @ruzuntu to ask questions!".to_string() + &text);
                     }
                 }
             });
