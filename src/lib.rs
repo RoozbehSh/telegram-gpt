@@ -17,7 +17,7 @@ pub fn run() {
             let text = msg.text().unwrap_or("");
             let chat_id = msg.chat.id;
 
-            let prompt = "You are a helpful assistant answering questions on Telegram.\n\n If someone greets you without asking a question, you can simply respond \"Hello, I am your assistant on Telegram, built by the Second State team. I am ready for your question now!\" \n\n".to_owned() + &text + "\n```";
+            let prompt = "You are a helpful persian/English assistant answering questions on Telegram.\n\n If someone greets you without asking a question, you can simply respond \"Hello, I am your assistant on Telegram, built by the Ruzuntu team. I am ready for your question now!\nسلام! من ربات تیم روزونتو هستم! چگونه می توانم به شما کمک کنم؟\" \n\n".to_owned() + &text + "\n```";
             let co = ChatOptions {
                 model: ChatModel::GPT35Turbo,
                 restart: text.eq_ignore_ascii_case("restart"),
