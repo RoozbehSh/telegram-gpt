@@ -1,7 +1,6 @@
-use std::env;
 use wa_rust_telegram_bot::{Api, Config, UpdateHandler, UpdateKind};
-use openai_flows::{chat_completion, ChatModel, ChatOptions};
-use tg_flows::Telegram;
+use openai_flows::{chat_completion, ChatOptions, ChatModel};
+use std::env;
 
 #[no_mangle]
 pub fn run() {
@@ -11,71 +10,51 @@ pub fn run() {
     };
 
     let telegram_token = std::env::var("telegram_token").unwrap();
-    let api = Api::new(Config::new(telegram_token.clone()));
+    let api = Api::new(&telegram_token);
 
-    let handler = UpdateHandler::new(api.clone())
-        .on_update_async(|update| async move {
-            match update.kind {
-                UpdateKind::Message(msg) => {
-                    let text = msg.text.unwrap_or_default();
-                    let chat_id = msg.chat.id;
+    let target_channel_id = -1772546492; // replace with the ID of your target channel
 
-                    let target_channel = -1772546492; // Replace with the ID of your target channel.
-                    let chat_member = api.get_chat_member(target_channel, msg.from.id).await;
+    let handler = UpdateHandler::new().handle(move |update| {
+        if let UpdateKind::Message(msg) = update.kind {
+            let text = msg.text.unwrap_or("");
+            let chat_id = msg.chat.id();
 
-                    match chat_member {
-                        Ok(member) => {
-                            if member.status == wa_rust_telegram_bot::types::ChatMemberStatus::Member
-                                || member.status == wa_rust_telegram_bot::types::ChatMemberStatus::Administrator
-                                || member.status == wa_rust_telegram_bot::types::ChatMemberStatus::Creator
-                            {
-                                let prompt =
-                                    "You are a helpful assistant answering questions on Telegram.\n\nIf someone greets you without asking a question, you can simply respond \"Hello, I am your assistant on Telegram, built by the Second State team. I am ready for your question now!\"";
-                                let co = ChatOptions {
-                                    model: ChatModel::GPT35Turbo,
-                                    restart: text.eq_ignore_ascii_case("restart"),
-                                    restarted_sentence: Some(prompt.to_owned()),
-                                };
+            // Check if the user is in the target channel
+            let user_in_channel = api.get_chat_member(target_channel_id, msg.from.id).map(|member| {
+                member.status == wa_rust_telegram_bot::types::ChatMemberStatus::Member
+                    || member.status == wa_rust_telegram_bot::types::ChatMemberStatus::Administrator
+                    || member.status == wa_rust_telegram_bot::types::ChatMemberStatus::Creator
+            });
 
-                                let c = chat_completion(
-                                    &openai_key_name,
-                                    &chat_id.to_string(),
-                                    &text,
-                                    &co,
-                                );
-                                if let Some(c) = c {
-                                    if c.restarted {
-                                        let msg =
-                                            "I am starting a new conversation since it has been over 10 minutes from your last reply. You can also tell me to restart by typing \"restart\" into the chat.\n\n"
-                                                .to_owned()
-                                                + &c.choice;
-                                        api.send_message(chat_id, &msg).await;
-                                    } else {
-                                        api.send_message(chat_id, &c.choice).await;
-                                    }
-                                }
-                            } else {
-                                api.send_message(
-                                    chat_id,
-                                    "Please join the target channel to get your questions answered.",
-                                )
-                                .await;
-                            }
-                        }
-                        Err(e) => {
-                            println!("Error checking chat membership: {}", e);
+            match user_in_channel {
+                Ok(true) => {
+                    let prompt =
+                        "You are a helpful assistant answering questions on Telegram.\n\nIf someone greets you without asking a question, you can simply respond \"Hello, I am your assistant on Telegram, built by the Second State team. I am ready for your question now!\"";
+                    let co = ChatOptions {
+                        model: ChatModel::GPT35Turbo,
+                        restart: text.eq_ignore_ascii_case("restart"),
+                        restarted_sentence: Some(prompt),
+                    };
+
+                    let c = chat_completion(&openai_key_name, &chat_id.to_string(), &text, &co);
+                    if let Some(c) = c {
+                        if c.restarted {
+                            _ = api.send_message(chat_id, "I am starting a new conversation since it has been over 10 minutes from your last reply. You can also tell me to restart by typing \"restart\" into the chat.\n\n".to_string() + &c.choice);
+                        } else {
+                            _ = api.send_message(chat_id, c.choice);
                         }
                     }
                 }
-                _ => {}
+                _ => {
+                    _ = api.send_message(chat_id, "Please join the target channel to get your questions answered.".to_string());
+                }
             }
-        });
+        }
+        Ok(())
+    });
 
-    let tele = Telegram::new(api.clone());
-    tele.listen_updates(handler).start();
+    Config::new().update_handler(handler).run();
 }
-
-
 
 
 /*
