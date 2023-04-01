@@ -14,9 +14,7 @@ store-flows = "0.2"
 serde_json = "1.0"
 dotenv = "0.15.0"
 flowsnet-platform-sdk = "0.1"
-telegram-bot = "0.8"
-futures = "0.3"
-libc = { version = "0.2", features = ["wasi"] }
+
 
 
 
