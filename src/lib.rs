@@ -12,12 +12,24 @@ pub fn run() {
     let telegram_token = std::env::var("telegram_token").unwrap();
     let tele = Telegram::new(telegram_token.clone());
 
-    let target_channel = -1772546492; // Replace with your desired channel ID
-
+    let target_channel = -1772546492; // Replace with the target channel ID
+    
     listen_to_update(telegram_token, |update| {
         if let UpdateKind::Message(msg) = update.kind {
             let text = msg.text().unwrap_or("");
             let chat_id = msg.chat.id;
+            let user_id = msg.from.id;
+
+            if let Some(chat_member) = tele.get_chat_member(target_channel, user_id) {
+                if !chat_member.status.is_member() {
+                    // If user is not a member of the channel, prompt them to join
+                    _ = tele.send_message(chat_id, "Please join the channel to get assistance.".to_string());
+                    return;
+                }
+            } else {
+                // If unable to check chat membership, return early
+                return;
+            }
 
             let prompt = "You are a helpful assistant answering questions on Telegram.\n\nIf someone greets you without asking a question, you can simply respond \"Hello, I am your assistant on Telegram, built by the Second State team. I am ready for your question now!\"";
             let co = ChatOptions {
@@ -25,14 +37,6 @@ pub fn run() {
                 restart: text.eq_ignore_ascii_case("restart"),
                 restarted_sentence: Some(prompt)
             };
-
-            // Check if user is a member of the target channel
-            let chat_member = tele.get_chat_member(target_channel, msg.from.id).unwrap();
-            if !chat_member.is_member() {
-                // User is not a member of the target channel
-                _ = tele.send_message(chat_id, "Please join our channel to ask questions.".to_string());
-                return;
-            }
 
             let c = chat_completion(&openai_key_name, &chat_id.to_string(), &text, &co);
             if let Some(c) = c {
@@ -45,6 +49,7 @@ pub fn run() {
         }
     });
 }
+
 
 /*
 use tg_flows::{listen_to_update, Telegram, UpdateKind};
